@@ -1,65 +1,65 @@
 import {BsPlusSquare, BsDashSquare} from 'react-icons/bs'
 import {AiFillCloseCircle} from 'react-icons/ai'
 import CartContext from '../../context/CartContext'
+import './index.css'
 
-const CartItem = props => (
-  <CartContext.Consumer>
-    {value => {
-      const {
-        incrementCartItemQuantity,
-        decrementCartItemQuantity,
-        removeCartItem,
-      } = value
+const CartItem = props => {
+  const {item} = props
+  const {id, title, brand, imageUrl, price, quantity} = item
 
-      const {cartItem} = props
-      const {id, title, brand, imageUrl, price, quantity} = cartItem
+  return (
+    <CartContext.Consumer>
+      {value => {
+        const {
+          incrementCartItemQuantity,
+          decrementCartItemQuantity,
+          removeCartItem,
+        } = value
 
-      return (
-        <li>
-          <img src={imageUrl} alt={title} />
+        const onIncrement = () => incrementCartItemQuantity(id)
+        const onDecrement = () => decrementCartItemQuantity(id)
+        const onRemove = () => removeCartItem(id)
 
-          <div>
-            <p>{title}</p>
-
-            {/* ✅ BRAND MUST BE DISPLAYED */}
-            <p>{brand}</p>
-
-            <div>
-              <button
-                type="button"
-                data-testid="minus"
-                onClick={() => decrementCartItemQuantity(id)}
-              >
-                <BsDashSquare />
-              </button>
-
-              {/* ✅ Quantity paragraph */}
-              <p>{quantity}</p>
-
-              <button
-                type="button"
-                data-testid="plus"
-                onClick={() => incrementCartItemQuantity(id)}
-              >
-                <BsPlusSquare />
-              </button>
+        return (
+          <li className="cart-item">
+            <img src={imageUrl} alt={title} className="cart-product-image" />
+            <div className="cart-item-details-container">
+              <p className="cart-product-title">{title}</p>
+              <p className="cart-product-brand">{brand}</p>
+              <div className="cart-quantity-container">
+                <button
+                  type="button"
+                  data-testid="minus"
+                  onClick={onDecrement}
+                  className="quantity-btn"
+                >
+                  <BsDashSquare />
+                </button>
+                <p className="cart-quantity">{quantity}</p>
+                <button
+                  type="button"
+                  data-testid="plus"
+                  onClick={onIncrement}
+                  className="quantity-btn"
+                >
+                  <BsPlusSquare />
+                </button>
+              </div>
+              <p className="cart-total-price">{price * quantity}</p>
             </div>
-
-            {/* ✅ Price updates with quantity */}
-            <p>Rs {price * quantity}</p>
-
             <button
               type="button"
               data-testid="remove"
-              onClick={() => removeCartItem(id)}
+              onClick={onRemove}
+              className="remove-btn"
             >
               <AiFillCloseCircle />
             </button>
-          </div>
-        </li>
-      )
-    }}
-  </CartContext.Consumer>
-)
+          </li>
+        )
+      }}
+    </CartContext.Consumer>
+  )
+}
 
 export default CartItem

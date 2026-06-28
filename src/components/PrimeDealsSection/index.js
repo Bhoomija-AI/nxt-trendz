@@ -1,22 +1,13 @@
 import {Component} from 'react'
-import Cookies from 'js-cookie'
 import Loader from 'react-loader-spinner'
-
-import ProductCard from '../ProductCard'
+import Cookies from 'js-cookie'
 
 import './index.css'
-
-const apiStatusConstants = {
-  initial: 'INITIAL',
-  success: 'SUCCESS',
-  failure: 'FAILURE',
-  inProgress: 'IN_PROGRESS',
-}
 
 class PrimeDealsSection extends Component {
   state = {
     primeDeals: [],
-    apiStatus: apiStatusConstants.initial,
+    isLoading: true,
   }
 
   componentDidMount() {
@@ -24,82 +15,70 @@ class PrimeDealsSection extends Component {
   }
 
   getPrimeDeals = async () => {
-    this.setState({
-      apiStatus: apiStatusConstants.inProgress,
-    })
-
+    const {isLoading} = this.state
     const jwtToken = Cookies.get('jwt_token')
 
-    const apiUrl = 'https://apis.ccbp.in/prime-deals'
+    const url = 'https://apis.ccbp.in/prime-deals'
     const options = {
       headers: {
         Authorization: `Bearer ${jwtToken}`,
       },
       method: 'GET',
     }
-    const response = await fetch(apiUrl, options)
+
+    const response = await fetch(url, options)
+    const data = await response.json()
+
     if (response.ok === true) {
-      const fetchedData = await response.json()
-      const updatedData = fetchedData.prime_deals.map(product => ({
-        title: product.title,
-        brand: product.brand,
-        price: product.price,
-        id: product.id,
-        imageUrl: product.image_url,
-        rating: product.rating,
+      const updatedData = data.prime_deals.map(eachItem => ({
+        id: eachItem.id,
+        title: eachItem.title,
+        imageUrl: eachItem.image_url,
+        brand: eachItem.brand,
+        price: eachItem.price,
+        rating: eachItem.rating,
       }))
+
       this.setState({
         primeDeals: updatedData,
-        apiStatus: apiStatusConstants.success,
-      })
-    }
-    if (response.status === 401) {
-      this.setState({
-        apiStatus: apiStatusConstants.failure,
+        isLoading: false,
       })
     }
   }
 
-  renderPrimeDealsListView = () => {
+  renderPrimeDeals = () => {
     const {primeDeals} = this.state
+
     return (
-      <div>
-        <h1 className="primedeals-list-heading">Exclusive Prime Deals</h1>
-        <ul className="products-list">
-          {primeDeals.map(product => (
-            <ProductCard productData={product} key={product.id} />
-          ))}
-        </ul>
-      </div>
+      <ul className="prime-deals-list">
+        {primeDeals.map(eachItem => (
+          <li key={eachItem.id}>
+            <img
+              src={eachItem.imageUrl}
+              alt={eachItem.title}
+              className="prime-deal-image"
+            />
+            <p>{eachItem.title}</p>
+          </li>
+        ))}
+      </ul>
     )
   }
 
-  renderPrimeDealsFailureView = () => (
-    <img
-      src="https://assets.ccbp.in/frontend/react-js/exclusive-deals-banner-img.png"
-      alt="register prime"
-      className="register-prime-img"
-    />
-  )
-
-  renderLoadingView = () => (
-    <div className="primedeals-loader-container">
+  renderLoader = () => (
+    <div className="products-loader-container">
       <Loader type="ThreeDots" color="#0b69ff" height="50" width="50" />
     </div>
   )
 
   render() {
-    const {apiStatus} = this.state
-    switch (apiStatus) {
-      case apiStatusConstants.success:
-        return this.renderPrimeDealsListView()
-      case apiStatusConstants.failure:
-        return this.renderPrimeDealsFailureView()
-      case apiStatusConstants.inProgress:
-        return this.renderLoadingView()
-      default:
-        return null
-    }
+    const {isLoading} = this.state
+
+    return (
+      <div className="prime-deals-section">
+        {isLoading ? this.renderLoader() : this.renderPrimeDeals()}
+      </div>
+    )
   }
 }
 

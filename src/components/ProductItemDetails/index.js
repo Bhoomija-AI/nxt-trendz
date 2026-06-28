@@ -1,13 +1,10 @@
 import {Component} from 'react'
-import {Link} from 'react-router-dom'
 import Cookies from 'js-cookie'
 import Loader from 'react-loader-spinner'
 import {BsPlusSquare, BsDashSquare} from 'react-icons/bs'
 
 import CartContext from '../../context/CartContext'
-
 import Header from '../Header'
-import SimilarProductItem from '../SimilarProductItem'
 
 import './index.css'
 
@@ -44,12 +41,10 @@ class ProductItemDetails extends Component {
 
   getProductData = async () => {
     const {match} = this.props
-    const {params} = match
-    const {id} = params
+    const {id} = match.params
 
-    this.setState({
-      apiStatus: apiStatusConstants.inProgress,
-    })
+    this.setState({apiStatus: apiStatusConstants.inProgress})
+
     const jwtToken = Cookies.get('jwt_token')
     const apiUrl = `https://apis.ccbp.in/products/${id}`
     const options = {
@@ -58,47 +53,29 @@ class ProductItemDetails extends Component {
       },
       method: 'GET',
     }
+
     const response = await fetch(apiUrl, options)
+
     if (response.ok) {
-      const fetchedData = await response.json()
-      const updatedData = this.getFormattedData(fetchedData)
-      const updatedSimilarProductsData = fetchedData.similar_products.map(
-        eachSimilarProduct => this.getFormattedData(eachSimilarProduct),
+      const data = await response.json()
+      const updatedProductData = this.getFormattedData(data)
+      const updatedSimilarProducts = data.similar_products.map(each =>
+        this.getFormattedData(each),
       )
+
       this.setState({
-        productData: updatedData,
-        similarProductsData: updatedSimilarProductsData,
+        productData: updatedProductData,
+        similarProductsData: updatedSimilarProducts,
         apiStatus: apiStatusConstants.success,
       })
-    }
-    if (response.status === 404) {
-      this.setState({
-        apiStatus: apiStatusConstants.failure,
-      })
+    } else {
+      this.setState({apiStatus: apiStatusConstants.failure})
     }
   }
 
-  renderLoadingView = () => (
-    <div className="products-details-loader-container" data-testid="loader">
-      <Loader type="ThreeDots" color="#0b69ff" height="50" width="50" />
-    </div>
-  )
-
-  renderFailureView = () => (
-    <div className="product-details-error-view-container">
-      <img
-        alt="error view"
-        src="https://assets.ccbp.in/frontend/react-js/nxt-trendz-error-view-img.png"
-        className="error-view-image"
-      />
-      <h1 className="product-not-found-heading">Product Not Found</h1>
-      <Link to="/products">
-        <button type="button" className="button">
-          Continue Shopping
-        </button>
-      </Link>
-    </div>
-  )
+  onIncrementQuantity = () => {
+    this.setState(prevState => ({quantity: prevState.quantity + 1}))
+  }
 
   onDecrementQuantity = () => {
     const {quantity} = this.state
@@ -107,95 +84,135 @@ class ProductItemDetails extends Component {
     }
   }
 
-  onIncrementQuantity = () => {
-    this.setState(prevState => ({quantity: prevState.quantity + 1}))
+  renderLoadingView = () => (
+    <>
+      <Header />
+      <div className="loader-container" data-testid="loader">
+        <Loader type="ThreeDots" color="#0b69ff" height={50} width={50} />
+      </div>
+    </>
+  )
+
+  renderFailureView = () => {
+    const {history} = this.props
+
+    const onContinueShopping = () => {
+      history.replace('/products')
+    }
+
+    return (
+      <>
+        <Header />
+        <div className="error-view-container">
+          <img
+            src="https://assets.ccbp.in/frontend/react-js/nxt-trendz-error-view-img.png"
+            alt="error view"
+            className="error-view-image"
+          />
+          <h1 className="product-not-found-heading">Product Not Found</h1>
+          <button
+            type="button"
+            className="continue-shopping-btn"
+            onClick={onContinueShopping}
+          >
+            Continue Shopping
+          </button>
+        </div>
+      </>
+    )
   }
 
-  renderProductDetailsView = () => (
+  renderSuccessView = () => (
     <CartContext.Consumer>
       {value => {
         const {productData, quantity, similarProductsData} = this.state
         const {
-          availability,
-          brand,
-          description,
-          imageUrl,
-          price,
-          rating,
           title,
+          price,
+          description,
+          brand,
+          imageUrl,
+          rating,
           totalReviews,
+          availability,
         } = productData
+
         const {addCartItem} = value
+
         const onClickAddToCart = () => {
           addCartItem({...productData, quantity})
         }
 
         return (
-          <div className="product-details-success-view">
-            <div className="product-details-container">
-              <img src={imageUrl} alt="product" className="product-image" />
-              <div className="product">
-                <h1 className="product-name">{title}</h1>
-                <p className="price-details">Rs {price}/-</p>
-                <div className="rating-and-reviews-count">
-                  <div className="rating-container">
+          <>
+            <Header />
+            <div className="product-details-success-view">
+              <div className="product-details-container">
+                <img src={imageUrl} alt="product" className="product-image" />
+                <div className="product-info">
+                  <h1 className="product-name">{title}</h1>
+                  <p className="price-details">{price}</p>
+                  <div className="rating-and-reviews-count">
                     <p className="rating">{rating}</p>
-                    <img
-                      src="https://assets.ccbp.in/frontend/react-js/star-img.png"
-                      alt="star"
-                      className="star"
-                    />
+                    <p className="reviews-count">{totalReviews}</p>
                   </div>
-                  <p className="reviews-count">{totalReviews} Reviews</p>
-                </div>
-                <p className="product-description">{description}</p>
-                <div className="label-value-container">
-                  <p className="label">Available:</p>
-                  <p className="value">{availability}</p>
-                </div>
-                <div className="label-value-container">
-                  <p className="label">Brand:</p>
-                  <p className="value">{brand}</p>
-                </div>
-                <hr className="horizontal-line" />
-                <div className="quantity-container">
+                  <p className="product-description">{description}</p>
+                  <div className="label-value-container">
+                    <p className="label">Availability:</p>
+                    <p className="value">{availability}</p>
+                  </div>
+                  <div className="label-value-container">
+                    <p className="label">Brand:</p>
+                    <p className="value">{brand}</p>
+                  </div>
+                  <hr className="horizontal-line" />
+                  <div className="quantity-container">
+                    <button
+                      type="button"
+                      className="quantity-controller-button"
+                      data-testid="minus"
+                      onClick={this.onDecrementQuantity}
+                    >
+                      <BsDashSquare className="quantity-controller-icon" />
+                    </button>
+                    <p className="quantity">{quantity}</p>
+                    <button
+                      type="button"
+                      className="quantity-controller-button"
+                      data-testid="plus"
+                      onClick={this.onIncrementQuantity}
+                    >
+                      <BsPlusSquare className="quantity-controller-icon" />
+                    </button>
+                  </div>
                   <button
                     type="button"
-                    className="quantity-controller-button"
-                    onClick={this.onDecrementQuantity}
-                    data-testid="minus"
+                    className="button add-to-cart-btn"
+                    onClick={onClickAddToCart}
                   >
-                    <BsDashSquare className="quantity-controller-icon" />
-                  </button>
-                  <p className="quantity">{quantity}</p>
-                  <button
-                    type="button"
-                    className="quantity-controller-button"
-                    onClick={this.onIncrementQuantity}
-                    data-testid="plus"
-                  >
-                    <BsPlusSquare className="quantity-controller-icon" />
+                    ADD TO CART
                   </button>
                 </div>
-                <button
-                  type="button"
-                  className="button add-to-cart-btn"
-                  onClick={onClickAddToCart}
-                >
-                  ADD TO CART
-                </button>
               </div>
+
+              <h1 className="similar-products-heading">Similar Products</h1>
+              <ul className="similar-products-list">
+                {similarProductsData.map(each => (
+                  <li key={each.id} className="similar-product-item">
+                    <img
+                      src={each.imageUrl}
+                      alt={`similar product ${each.title}`}
+                      className="similar-product-image"
+                    />
+                    <p className="similar-product-title">{each.title}</p>
+                    <p className="similar-product-brand">{each.brand}</p>
+                    <p className="similar-product-rating">{each.rating}</p>
+                    <p className="similar-product-price">{each.price}</p>
+                  </li>
+                ))}
+              </ul>
             </div>
-            <h1 className="similar-products-heading">Similar Products</h1>
-            <ul className="similar-products-list">
-              {similarProductsData.map(eachSimilarProduct => (
-                <SimilarProductItem
-                  productDetails={eachSimilarProduct}
-                  key={eachSimilarProduct.id}
-                />
-              ))}
-            </ul>
-          </div>
+          </>
         )
       }}
     </CartContext.Consumer>
@@ -206,7 +223,7 @@ class ProductItemDetails extends Component {
 
     switch (apiStatus) {
       case apiStatusConstants.success:
-        return this.renderProductDetailsView()
+        return this.renderSuccessView()
       case apiStatusConstants.failure:
         return this.renderFailureView()
       case apiStatusConstants.inProgress:
@@ -217,14 +234,7 @@ class ProductItemDetails extends Component {
   }
 
   render() {
-    return (
-      <>
-        <Header />
-        <div className="product-item-details-container">
-          {this.renderProductDetails()}
-        </div>
-      </>
-    )
+    return this.renderProductDetails()
   }
 }
 
