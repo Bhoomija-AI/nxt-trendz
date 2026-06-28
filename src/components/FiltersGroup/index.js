@@ -35,7 +35,7 @@ const FiltersGroup = props => {
         onKeyDown={onKeyDownSearch}
       />
 
-      <h2 className="filter-heading">Category</h2>
+      <h1 className="filter-heading">Category</h1>
       <ul className="categories-list">
         {categoryOptions.map(category => (
           <li
@@ -50,7 +50,7 @@ const FiltersGroup = props => {
         ))}
       </ul>
 
-      <h2 className="filter-heading">Rating</h2>
+      <h1 className="filter-heading">Rating</h1>
       <ul className="ratings-list">
         {ratingsList.map(rating => (
           <li

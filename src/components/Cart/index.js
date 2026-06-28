@@ -12,7 +12,14 @@ const Cart = () => (
       return (
         <>
           <Header />
-          {cartList.length === 0 ? <EmptyCartView /> : <CartListView />}
+          <div className="cart-route-container">
+            <img
+              src="https://assets.ccbp.in/frontend/react-js/nxt-trendz-cart-img.png"
+              alt="cart"
+              className="cart-img"
+            />
+            {cartList.length === 0 ? <EmptyCartView /> : <CartListView />}
+          </div>
         </>
       )
     }}
