@@ -1,7 +1,6 @@
 import {Component} from 'react'
 import Loader from 'react-loader-spinner'
 import Cookies from 'js-cookie'
-import {Link} from 'react-router-dom'
 
 import FiltersGroup from '../FiltersGroup'
 import ProductCard from '../ProductCard'
@@ -70,6 +69,7 @@ class AllProductsSection extends Component {
     this.setState({apiStatus: apiStatusConstants.inProgress})
 
     const jwtToken = Cookies.get('jwt_token')
+
     const {
       activeOptionId,
       activeCategoryId,
@@ -108,16 +108,16 @@ class AllProductsSection extends Component {
     }
   }
 
-  changeSortby = optionId => {
-    this.setState({activeOptionId: optionId}, this.getProducts)
+  changeSortby = activeOptionId => {
+    this.setState({activeOptionId}, this.getProducts)
   }
 
-  changeCategory = id => {
-    this.setState({activeCategoryId: id}, this.getProducts)
+  changeCategory = activeCategoryId => {
+    this.setState({activeCategoryId}, this.getProducts)
   }
 
-  changeRating = id => {
-    this.setState({activeRatingId: id}, this.getProducts)
+  changeRating = activeRatingId => {
+    this.setState({activeRatingId}, this.getProducts)
   }
 
   changeSearchInput = searchInput => {
@@ -134,11 +134,16 @@ class AllProductsSection extends Component {
         searchInput: '',
         activeCategoryId: '',
         activeRatingId: '',
-        activeOptionId: sortbyOptions[0].optionId,
       },
       this.getProducts,
     )
   }
+
+  renderLoadingView = () => (
+    <div className="products-loader-container">
+      <Loader type="ThreeDots" color="#0b69ff" height={50} width={50} />
+    </div>
+  )
 
   renderFailureView = () => (
     <div className="products-error-view-container">
@@ -149,12 +154,6 @@ class AllProductsSection extends Component {
       />
       <h1>Oops! Something Went Wrong</h1>
       <p>Please try again</p>
-    </div>
-  )
-
-  renderLoadingView = () => (
-    <div className="products-loader-container" data-testid="loader">
-      <Loader type="ThreeDots" color="#0b69ff" height={50} width={50} />
     </div>
   )
 
@@ -182,14 +181,7 @@ class AllProductsSection extends Component {
         />
         <ul className="products-list">
           {productsList.map(product => (
-            <li key={product.id} className="product-item">
-              <Link
-                to={`/product-details/${product.id}`}
-                className="product-link"
-              >
-                <ProductCard productData={product} />
-              </Link>
-            </li>
+            <ProductCard key={product.id} productData={product} />
           ))}
         </ul>
       </div>

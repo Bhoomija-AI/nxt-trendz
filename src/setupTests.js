@@ -1,11 +1,6 @@
-import ReactDOM from 'react-dom'
-import {BrowserRouter} from 'react-router-dom'
+/* eslint-disable */
 
-import App from './App'
+import '@testing-library/jest-dom'
+import {configure} from '@testing-library/react'
 
-ReactDOM.render(
-  <BrowserRouter>
-    <App />
-  </BrowserRouter>,
-  document.getElementById('root'),
-)
+configure({testIdAttribute: 'data-testid'})
